@@ -4,7 +4,7 @@ class Note {
     required this.title,
     this.body = '',
     required this.updatedAt,
-    this.dirty = true,
+    this.dirty = false,
   });
 
   final int? id;
@@ -23,7 +23,7 @@ class Note {
         updatedAt: map['updated_at'] != null
             ? DateTime.parse(map['updated_at'] as String)
             : DateTime.now(),
-        dirty: (map['dirty'] as int? ?? 1) == 1,
+        dirty: (map['dirty'] as int? ?? 0) == 1,
       );
 
   /// Mengubah Note menjadi Map untuk disimpan ke SQLite.

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'pages/settings_page.dart';
+import 'pages/notes_page.dart';
 import 'providers/prefs_providers.dart';
 
 void main() {
@@ -28,7 +28,7 @@ class MyApp extends ConsumerWidget {
         brightness: Brightness.dark,
         useMaterial3: true,
       ),
-      home: const SettingsPage(),
+      home: const NotesPage(),
     );
   }
 }

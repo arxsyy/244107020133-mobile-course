@@ -2,6 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../data/local/note.dart';
 import '../data/repositories/note_repository.dart';
+import '../data/sync.dart';
+import 'offline_providers.dart';
 
 /// Provider tunggal untuk instance NoteRepository.
 /// Bisa di-override di test dengan FakeNoteRepository.
@@ -59,6 +61,13 @@ class NoteActions {
   Future<void> delete(int id) async {
     await _repo.deleteNote(id);
     _refresh();
+  }
+
+  Future<int> sync() async {
+    final offline = _ref.read(forceOfflineProvider);
+    final count = await syncNotes(_repo, offline: offline);
+    _refresh();
+    return count;
   }
 }
 

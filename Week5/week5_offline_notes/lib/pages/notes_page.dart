@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../data/local/note.dart';
 import '../data/sync.dart';
@@ -7,6 +8,7 @@ import '../providers/note_providers.dart';
 import '../pages/posts_page.dart';
 import '../pages/settings_page.dart';
 import '../widgets/note_form_dialog.dart';
+import '../widgets/note_tile.dart';
 
 class NotesPage extends ConsumerWidget {
   const NotesPage({super.key});
@@ -106,10 +108,17 @@ class NotesPage extends ConsumerWidget {
                   ],
                 ),
               )
-            : ListView.builder(
+            : ListView.separated(
                 itemCount: notes.length,
-                itemBuilder: (context, index) =>
-                    _NoteListItem(note: notes[index], actions: actions),
+                separatorBuilder: (context, index) => const Divider(height: 1),
+                itemBuilder: (context, index) {
+                  final note = notes[index];
+                  return NoteTile(
+                    note: note,
+                    onTap: () => context.push('/note/${note.id}'),
+                    onDelete: () => _confirmDelete(context, actions, note),
+                  );
+                },
               ),
       ),
       floatingActionButton: FloatingActionButton(
@@ -120,73 +129,19 @@ class NotesPage extends ConsumerWidget {
     );
   }
 
-  Future<void> _showForm(BuildContext context, NoteActions actions,
-      [Note? note]) async {
+  Future<void> _showForm(BuildContext context, NoteActions actions) async {
     final result = await showDialog<({String title, String body})>(
       context: context,
-      builder: (_) => NoteFormDialog(
-        initialTitle: note?.title ?? '',
-        initialBody: note?.body ?? '',
+      builder: (_) => const NoteFormDialog(
+        initialTitle: '',
+        initialBody: '',
       ),
     );
     if (result == null) return;
-    if (note == null) {
-      await actions.add(result.title, result.body);
-    } else {
-      await actions.update(note, result.title, result.body);
-    }
-  }
-}
-
-class _NoteListItem extends StatelessWidget {
-  const _NoteListItem({required this.note, required this.actions});
-
-  final Note note;
-  final NoteActions actions;
-
-  @override
-  Widget build(BuildContext context) {
-    return ListTile(
-      title: Text(note.title),
-      subtitle: note.body.isNotEmpty ? Text(note.body, maxLines: 2) : null,
-      trailing: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Badge dirty
-          if (note.dirty)
-            const Tooltip(
-              message: 'Belum tersinkron ke server',
-              child: Icon(Icons.sync_problem, size: 18, color: Colors.orange),
-            ),
-          IconButton(
-            icon: const Icon(Icons.edit_outlined),
-            tooltip: 'Edit',
-            onPressed: () => _openEdit(context),
-          ),
-          IconButton(
-            icon: const Icon(Icons.delete_outline),
-            tooltip: 'Hapus',
-            onPressed: () => _confirmDelete(context),
-          ),
-        ],
-      ),
-      onTap: () => _openEdit(context),
-    );
+    await actions.add(result.title, result.body);
   }
 
-  Future<void> _openEdit(BuildContext context) async {
-    final result = await showDialog<({String title, String body})>(
-      context: context,
-      builder: (_) => NoteFormDialog(
-        initialTitle: note.title,
-        initialBody: note.body,
-      ),
-    );
-    if (result == null) return;
-    await actions.update(note, result.title, result.body);
-  }
-
-  Future<void> _confirmDelete(BuildContext context) async {
+  Future<void> _confirmDelete(BuildContext context, NoteActions actions, Note note) async {
     final ok = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(

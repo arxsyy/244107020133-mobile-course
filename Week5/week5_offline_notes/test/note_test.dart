@@ -20,6 +20,16 @@ class FakeNoteRepository extends NoteRepository {
   }
 
   @override
+  Future<Note?> getNoteById(int id) async {
+    if (throwError) throw Exception('db locked (simulasi)');
+    try {
+      return items.firstWhere((n) => n.id == id);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  @override
   Future<int> countDirty() async => items.where((n) => n.dirty).length;
 
   @override

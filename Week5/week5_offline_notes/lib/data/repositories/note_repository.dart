@@ -16,6 +16,19 @@ class NoteRepository {
     return rows.map(Note.fromMap).toList();
   }
 
+  /// Mengambil satu catatan berdasarkan ID.
+  Future<Note?> getNoteById(int id) async {
+    final db = await _openDb();
+    final rows = await db.query(
+      'notes',
+      where: 'id = ?',
+      whereArgs: [id],
+      limit: 1,
+    );
+    if (rows.isEmpty) return null;
+    return Note.fromMap(rows.first);
+  }
+
   /// Menyimpan catatan baru (dirty = 1 secara bawaan).
   Future<int> insertNote(Note note) async {
     final db = await _openDb();
